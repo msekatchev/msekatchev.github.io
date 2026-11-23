@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bench Buddy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="bg"></div>
+<div id="viewport"></div>
+
+<!-- top bar -->
+<header id="topbar">
+  <div class="brand">
+    <span class="logo">🔬</span>
+    <div>
+      <h1>Bench Buddy</h1>
+      <p>CeBr₃ + fiber bench · Geant4 frame · mm</p>
+    </div>
+  </div>
+  <div class="tools">
+    <div class="seg" title="Camera views">
+      <button data-view="iso" class="active">Iso</button>
+      <button data-view="top">Top</button>
+      <button data-view="side">Side</button>
+      <button data-view="beam">Beam</button>
+    </div>
+    <div class="seg toggles" title="Show / hide">
+      <button data-toggle="table" class="on">🛠️ Table</button>
+      <button data-toggle="box" class="on">🪵 Box</button>
+      <button data-toggle="lid">Lid</button>
+      <button data-toggle="holders" class="on">🖨️ Holders</button>
+      <button data-toggle="xray">👻 X-ray</button>
+      <button data-toggle="photons" class="on">✨ Photons</button>
+    </div>
+    <div class="seg">
+      <button id="undoBtn" title="Undo (Ctrl/Cmd+Z)">↶ Undo</button>
+      <button id="resetBtn" title="Back to geometry.mac">⟲ Reset</button>
+    </div>
+    <div class="seg">
+      <button id="loadBtn" title="Load a .mac (geometry.mac or an export)">📂 Load .mac</button>
+      <button id="exportBtn" class="primary" title="Download a Geant4 macro">💾 Export .mac</button>
+    </div>
+    <input id="fileInput" type="file" accept=".mac,.txt" hidden>
+  </div>
+</header>
+
+<!-- left panel: parts + dimensions -->
+<aside id="left" class="panel">
+  <h2>Parts</h2>
+  <ul id="partList"></ul>
+  <button id="addBrick" class="add">＋ 🧱 Lead brick</button>
+  <details id="dims">
+    <summary>📐 Dimensions <span class="hint">geometry.mac</span></summary>
+    <div id="dimForm"></div>
+  </details>
+</aside>
+
+<!-- right panel: selected part -->
+<aside id="right" class="panel hidden">
+  <div class="selhead">
+    <span id="selEmoji">🧱</span>
+    <div>
+      <h2 id="selName">—</h2>
+      <p id="selSub" class="hint"></p>
+    </div>
+    <button id="deselect" class="icon" title="Deselect (Esc)">✕</button>
+  </div>
+  <div class="seg full">
+    <button data-mode="translate" class="active">✥ Move <kbd>W</kbd></button>
+    <button data-mode="rotate">⟳ Rotate <kbd>E</kbd></button>
+    <button id="spaceBtn" title="Gizmo space (Q)">World</button>
+  </div>
+  <div class="grid3">
+    <label>x<input type="number" step="1" data-k="px"></label>
+    <label>y<input type="number" step="1" data-k="py"></label>
+    <label>z<input type="number" step="1" data-k="pz"></label>
+    <label>rx°<input type="number" step="5" data-k="rx"></label>
+    <label>ry°<input type="number" step="5" data-k="ry"></label>
+    <label>rz°<input type="number" step="5" data-k="rz"></label>
+  </div>
+  <div class="row">
+    <label class="inline">snap
+      <select id="snapT">
+        <option value="0">off</option><option value="0.5">0.5 mm</option>
+        <option value="1" selected>1 mm</option><option value="5">5 mm</option><option value="25.4">1 in</option>
+      </select>
+    </label>
+    <label class="inline">
+      <select id="snapR">
+        <option value="0">off</option><option value="1">1°</option>
+        <option value="5">5°</option><option value="15" selected>15°</option><option value="90">90°</option>
+      </select>
+    </label>
+  </div>
+  <div id="brickBox" class="hidden">
+    <h3>Brick</h3>
+    <label class="inline wide">size
+      <select id="brickPreset"></select>
+    </label>
+    <div class="grid3">
+      <label>dx<input type="number" step="0.1" data-b="0"></label>
+      <label>dy<input type="number" step="0.1" data-b="1"></label>
+      <label>dz<input type="number" step="0.1" data-b="2"></label>
+    </div>
+    <label class="inline wide">material
+      <select id="brickMat">
+        <option value="G4_Pb">lead (G4_Pb)</option>
+        <option value="G4_W">tungsten (G4_W)</option>
+        <option value="G4_Fe">iron (G4_Fe)</option>
+        <option value="G4_Cu">copper (G4_Cu)</option>
+        <option value="G4_POLYETHYLENE">polyethylene</option>
+      </select>
+    </label>
+    <p id="brickMass" class="mass"></p>
+  </div>
+  <div id="mapBox" class="map"></div>
+  <div class="row">
+    <button id="partReset">⟲ Reset part</button>
+    <button id="partDelete" class="danger hidden">🗑 Delete</button>
+  </div>
+</aside>
+
+<!-- bottom HUD -->
+<footer id="hud">
+  <div id="dist"></div>
+  <div id="compat"></div>
+</footer>
+
+<div id="toast"></div>
+<div id="drop">Drop a .mac to load it 📂</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
