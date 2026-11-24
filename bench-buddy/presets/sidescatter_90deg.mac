@@ -1,0 +1,66 @@
+# Bench Buddy preset: 90 deg side-scatter geometry with a lead wall (Nov 2026).
+# Cleaned up from a Bench Buddy export.
+#
+# Layout (top view, Geant4 frame: fiber along x with its SiPM at +x, y up, origin = fiber centre):
+#   - beam hits the fiber CENTRE, at 45 deg to the fiber normal (z), coming from the +x,+z side
+#   - CeBr3 sits at the mirror position (-x,+z), aimed at the fiber centre
+#       -> scattering angle 90 deg (1275 -> 910 keV in the fiber, 662 -> 373, 511 -> 256)
+#   - a standard 2x4x8 in lead brick stands on edge in the x = 0 plane, between source and CeBr3,
+#     starting 40 mm in front of the fiber: it blocks every straight line from the source to the
+#     CeBr3 crystal, but not the beam to the fiber or the fiber -> crystal rays
+# Distances: collimator exit face -> fiber centre 95 mm; fiber centre -> CeBr3 front face 95 mm
+# (95 / sqrt 2 = 67.175 mm along x and z).
+# Changes from the export: fiber moved back to the origin (the C++ needs it there) and the rest
+# shifted with it; beam spot moved from 49 mm off-centre to the fiber centre (same as Oct 30);
+# CeBr3 rotated by 45 deg so it actually points at the beam spot (it was 47 deg off);
+# CeBr3 at the same 95 mm as the source (was 130 mm); brick sitting on the table (it was sunk
+# 25 mm into it), gap to the fiber a round 40 mm.
+#
+# Source
+/cebr3/geom/sourceDiameter 25
+/cebr3/geom/sourceThickness 3.2
+/cebr3/geom/activeDiameter 5
+/cebr3/geom/activeThickness 0.2
+# Collimator
+/cebr3/geom/collimatorMaterial W97
+/cebr3/geom/collimatorOD 50
+/cebr3/geom/collimatorLength 20
+/cebr3/geom/collimatorHole 3
+/cebr3/geom/collimatorToFiber -67.175
+# Fiber
+/cebr3/geom/fiberDiameter 2
+/cebr3/geom/fiberLength 240
+/cebr3/geom/cladFraction 0.03
+/cebr3/geom/teflonLayers 2
+/cebr3/geom/teflonLayerThickness 0.08
+/cebr3/geom/sipmSize 2
+/cebr3/geom/sipmThickness 0.5
+# CeBr3
+/cebr3/geom/fiberToCeBr3 67.175
+/cebr3/geom/frontCanOD 29
+/cebr3/geom/frontCanLength 26
+/cebr3/geom/rearCanOD 41
+/cebr3/geom/rearCanLength 36
+/cebr3/geom/canWall 0.5
+/cebr3/geom/crystalDiameter 25
+/cebr3/geom/crystalLength 25
+/cebr3/geom/windowThickness 1
+/cebr3/geom/sipmArrayThickness 0.5
+/cebr3/geom/pcbThickness 1.6
+# Table & box
+/cebr3/geom/tableTop -53.4
+/cebr3/geom/boxWall 19.05
+/cebr3/geom/holders true
+/cebr3/geom/table true
+/cebr3/geom/box true
+#
+# ---- Not supported by DetectorConstruction yet (see README "To do: the C++ side") ----
+#   /cebr3/place/<part> x y z rx ry rz   (mm, deg; R = Rz*Ry*Rx as G4Transform3D(R, t))
+#   source: exit-face centre, local +z = beam direction -> Ry(-135): beam along (-1, 0, -1)/sqrt2
+#   cebr3 : front-can face centre, local +z = into the module -> Ry(-45): it looks along (+1, 0, -1)/sqrt2
+#   brick : 101.6 x 50.8 x 203.2 rotated 90 deg about z -> 50.8 thick (x), 101.6 tall (y), 203.2 long (z);
+#           centre y = tableTop + 50.8 = -2.6, z = 40 + 101.6 = 141.6
+#/cebr3/place/source 67.175 0 67.175 0 -135 0
+#/cebr3/place/fiber 0 0 0 0 0 0
+#/cebr3/place/cebr3 -67.175 0 67.175 0 -45 0
+#/cebr3/brick/add G4_Pb 101.6 50.8 203.2 0 -2.6 141.6 0 0 90

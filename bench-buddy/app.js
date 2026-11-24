@@ -715,9 +715,27 @@ function renderSelected() {
 function refreshLive() {
   // distances along the beam, and export compatibility
   const p = state.params, src = state.parts.source, ce = state.parts.cebr3, fb = state.parts.fiber;
-  const d1 = fb.pos[2] - src.pos[2], d2 = ce.pos[2] - fb.pos[2];
-  let html = `<span>☢️→🧵 collimator face → fiber axis <b>${d1.toFixed(1)} mm</b></span>` +
-             `<span>🧵→🔮 fiber axis → CeBr₃ face <b>${d2.toFixed(1)} mm</b></span>`;
+  let html;
+  if (partFits("source") && partFits("cebr3") && partFits("fiber")) {
+    const d1 = fb.pos[2] - src.pos[2], d2 = ce.pos[2] - fb.pos[2];
+    html = `<span>☢️→🧵 collimator face → fiber axis <b>${d1.toFixed(1)} mm</b></span>` +
+           `<span>🧵→🔮 fiber axis → CeBr₃ face <b>${d2.toFixed(1)} mm</b></span>`;
+  } else {
+    // off-axis layout: follow the beam to the fiber, then measure the scatter to the CeBr3
+    const axisOf = (s) => new THREE.Vector3(0, 0, 1).applyEuler(new THREE.Euler(...s.rot.map(THREE.MathUtils.degToRad), "ZYX"));
+    const S = new THREE.Vector3(...src.pos), u = axisOf(src);                 // beam: S + t u
+    const F = new THREE.Vector3(...fb.pos), a = new THREE.Vector3(1, 0, 0).applyEuler(new THREE.Euler(...fb.rot.map(THREE.MathUtils.degToRad), "ZYX")); // fiber axis, +x = SiPM
+    const w0 = S.clone().sub(F), b = u.dot(a), den = 1 - b * b;
+    const t = den > 1e-9 ? (b * w0.dot(a) - w0.dot(u)) / den : 0;            // closest approach of beam and fiber axis
+    const spot = S.clone().addScaledVector(u, t), miss = spot.distanceTo(F.clone().addScaledVector(a, spot.clone().sub(F).dot(a)));
+    const C = new THREE.Vector3(...ce.pos), v = axisOf(ce);                  // CeBr3 looks along -v
+    const xtal = C.clone().addScaledVector(v, p.frontCanLength - p.crystalLength / 2), toX = xtal.clone().sub(spot).normalize();
+    const scat = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(u.dot(toX), -1, 1)));
+    const aim = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(v.dot(toX), -1, 1)));   // the module body points away from what it looks at
+    const along = Math.round(spot.clone().sub(F).dot(a) * 10) / 10 + 0;   // + 0 turns -0 into 0
+    html = `<span>☢️→🧵 collimator face → beam spot <b>${t.toFixed(1)} mm</b> (spot ${along >= 0 ? "+" : ""}${along.toFixed(1)} mm along the fiber${miss > 0.5 ? `, misses the axis by ${miss.toFixed(1)} mm` : ""})</span>` +
+           `<span>🧵→🔮 beam spot → CeBr₃ face <b>${C.distanceTo(spot).toFixed(1)} mm</b>, scattering angle <b>${scat.toFixed(1)}°</b>, aim off by ${aim.toFixed(1)}°</span>`;
+  }
   if (state.bricks.length) {
     const b = state.bricks[0], dx = b.pos[0] - fb.pos[0], dz = b.pos[2] - fb.pos[2];
     html += `<span>🧱 brick 1 centre <b>(${b.pos.map((v) => v.toFixed(0)).join(", ")})</b>, ${Math.hypot(dx, dz).toFixed(0)} mm from fiber centre</span>`;
@@ -783,6 +801,24 @@ document.querySelectorAll("[data-toggle]").forEach((b) => b.onclick = () => { co
 $("#undoBtn").onclick = undo;
 $("#resetBtn").onclick = () => { if (!confirm("Reset everything to geometry.mac (bricks back to one)?")) return; state = defaultState(); select(null); rebuildAll(); commit(); toast("Back to geometry.mac ✓"); };
 $("#exportBtn").onclick = () => { download("geometry_bench_buddy.mac", exportMacro()); toast("Macro downloaded 💾"); };
+// built-in geometries: null = the geometry.mac defaults, otherwise a .mac in presets/ (read like an export)
+const PRESETS = [
+  ["Oct 30 on-axis (geometry.mac)", null],
+  ["90° side scatter + lead wall", "presets/sidescatter_90deg.mac"],
+];
+for (const [name, file] of PRESETS) {
+  const o = document.createElement("option"); o.value = file ?? "default"; o.textContent = name; $("#presetSel").appendChild(o);
+}
+$("#presetSel").onchange = async (e) => {
+  const v = e.target.value; e.target.value = "";
+  if (!v) return;
+  if (v === "default") { state = defaultState(); select(null); rebuildAll(); commit(); toast("Oct 30 on-axis geometry ✓"); return; }
+  try {
+    const r = await fetch(v, { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    importMacro(await r.text());
+  } catch (err) { toast(`Couldn't load ${v} (${err.message}) 😕`); }
+};
 $("#loadBtn").onclick = () => $("#fileInput").click();
 $("#fileInput").onchange = async (e) => { const f = e.target.files[0]; if (f) importMacro(await f.text()); e.target.value = ""; };
 let dragDepth = 0;
