@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#d6efff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Globby</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><ellipse cx='50' cy='55' rx='40' ry='36' fill='%23cdb4ff'/><ellipse cx='37' cy='55' rx='5' ry='7' fill='%232b2140'/><ellipse cx='63' cy='55' rx='5' ry='7' fill='%232b2140'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet" />
+  <script type="module" crossorigin src="./assets/index-BVGyIZyG.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BwJcrObl.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <div id="hud">
+    <div id="counters">
+      <div id="stars" class="pill"><span class="star">★</span><span id="starCount">0</span></div>
+      <div id="berries" class="pill"><span class="berry">🍓</span><span id="berryCount">0</span></div>
+    </div>
+    <div id="buttons">
+      <button id="colorBtn" aria-label="Change colour">🎨</button>
+      <button id="muteBtn" aria-label="Toggle sound">🔊</button>
+      <button id="respawnBtn" aria-label="Go home">🏠</button>
+      <button id="helpBtn" aria-label="Help">?</button>
+    </div>
+    <div id="palette"></div>
+  </div>
+
+  <div id="help">
+    <div class="card">
+      <h2>How to wobble</h2>
+      <div class="desk">
+        <p><b>WASD / arrows</b> scoot around</p>
+        <p><b>Space</b> jump · press again in the air to double-jump</p>
+        <p><b>Drag</b> to look around · <b>scroll</b> or <b>Q/E</b> to zoom/turn</p>
+        <p><b>Click</b> Globby for a boop</p>
+      </div>
+      <div class="mob">
+        <p><b>Left thumb</b> scoot around</p>
+        <p><b>Jump button</b>, tap again in the air to double-jump</p>
+        <p><b>Drag on the right</b> to look · pinch to zoom</p>
+        <p><b>Tap</b> Globby for a boop</p>
+      </div>
+      <p>Find the ★ stars and munch the 🍓 strawberries! Red mushrooms are bouncy.</p>
+    </div>
+  </div>
+
+  <div id="title">
+    <div class="card">
+      <h1>Globby</h1>
+      <p class="sub">a small goop in a big world</p>
+      <button id="startBtn">Let's wobble!</button>
+      <p class="hint desk">WASD to scoot · Space to jump (twice!) · drag to look</p>
+      <p class="hint mob">left thumb to scoot · ⤒ to jump (twice!) · drag right side to look</p>
+    </div>
+  </div>
+
+  <div id="joy"><div id="knob"></div></div>
+  <button id="jumpBtn" aria-label="Jump">⤒</button>
+  <div id="zzz"><span>z</span><span>z</span><span>Z</span></div>
+
+</body>
+</html>
